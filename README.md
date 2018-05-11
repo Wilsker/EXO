@@ -63,9 +63,8 @@ If everything above ran ok one can create the remainder of the gridpacks, one ca
 This step needs the gridpacks generated above along with the multicrab_Step1_GridPackToLHE.py, the relevant wmLHE_XXXXX_cfg.py configs and the multicrab_step1 submission config. We need to set up a CMSSW environment. 'http://cms-sw.github.io/latestIBs.html' - Latest integration build webpage. Info on which scram arch to use for the latest IB's. Can use 'scram list' to see which CMSSW version are available for a given scram arch.
 ```
 export SCRAM_ARCH="slc6_amd64_gcc630"
-
+```
 I ended up using 'CMSSW_9_3_4' because that was what was used in the 'Fall2017' production.
-
 ```
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 export SCRAM_ARCH="slc6_amd64_gcc630"
@@ -77,7 +76,7 @@ scram b -j 3
 
 The jobs were submitted from '/afs/cern.ch/work/j/jthomasw/private/IHEP/EXO/CMSSW_9_3_4/src/step_1/' directory.
 
-- Copy gridpack tarballs (Code_****_tar.xz) here from genproduction directory. In this case, the gridpacks were generated from:
+- Copy gridpack tarballs (Code_####tar.xz) here from genproduction directory. In this case, the gridpacks were generated from:
   /afs/cern.ch/work/j/jthomasw/private/IHEP/EXO/genproductions/bin/MadGraph5_aMCatNLO/
   but copied from:
   /afs/cern.ch/work/j/jthomasw/private/IHEP/EXO/CMSSW_9_3_4/src/step_1/
