@@ -1,0 +1,104 @@
+#####################
+#      Step 2
+# GEN-SIM creation
+#####################
+This step makes the 'GEN-SIM' from the wmLHE published samples. This step also requires a GEN-SIM_cfg.py.
+For this step your working directory should be the same CMSSW work area that was used to create the LHE files.
+
+Useful link:
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookGeneration#PythiaHZZmumuSampleCfg
+
+Creating the GEN-SIM_cfg.py requires the fragment code which depends on the analysis and signal model. You
+can find the information for the fragments used for a samples production during a given campaign in McM (circle
+icon with cross in the middle).
+
+For the Mono-LQ3 analysis we use Madgraph:
+
+https://github.com/cms-sw/genproductions/blob/master/python/ThirteenTeV/Hadronizer/Hadronizer_TuneCP5_13TeV_generic_LHE_pythia8_cff.py
+
+To use the fragment, you need to make a directory called "Configuration", cd into that directory and checkout the genproduction repo.
+I forked the genproduction package in my private gitHub repository first then cloned it locally so I can track edits to the official repo
+while maintaining my own edits.
+
+$> git clone https://Wilsker@github.com/cms-sw/genproductions.git GenProduction
+
+This is not part of CMSSW so you need to change back into CMSSW/src and recompile. One can then run the command beneath to generate a GEN-SIM_cfg.py.
+Note, one can look up the newest campaign in McM to find out the most recent cmsDriver command.
+
+$> cmsDriver.py Configuration/GenProduction/python/ThirteenTeV/Hadronizer/Hadronizer_TuneCP5_13TeV_generic_LHE_pythia8_cff.py --filein file:LHE.root --fileout file:GEN-SIM.root --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions 93X_mc2017_realistic_v3 --beamspot Realistic25ns13TeVEarly2017Collision --step GEN,SIM --nThreads 8 --geometry DB:Extended --era Run2_2017 --python_filename GEN-SIM_cfg.py --customise Configuration/DataProcessing/Utils.addMonitoring --no_exec -n 10
+
+Based on the following that was used for the Fall 2017 production: https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_test/TOP-RunIIFall17wmLHEGS-00001
+which contains the following options:
+
+cmsDriver.py Configuration/GenProduction/python/TOP-RunIIFall17wmLHEGS-00001-fragment.py
+--fileout file:TOP-RunIIFall17wmLHEGS-00001.root
+--mc
+--eventcontent RAWSIM,LHE
+--datatier GEN-SIM,LHE
+--conditions 93X_mc2017_realistic_v3
+--beamspot Realistic25ns13TeVEarly2017Collision
+--step LHE,GEN,SIM
+--nThreads 8
+--geometry DB:Extended
+--era Run2_2017
+--python_filename TOP-RunIIFall17wmLHEGS-00001_1_cfg.py
+--no_exec
+--customise Configuration/DataProcessing/Utils.addMonitoring
+-n 774
+
+
+The GEN-SIM python script that is generated is necessary as it is the pset for the multicrab2 config.
+
+!WARNING!
+You need to change the 'fileNames' in GEN-SIM_cfg.py:
+
+fileNames = cms.untracked.vstring('file:LHE.root')
+
+You can use the LFN's of the files you generated in step1 to replace 'file:LHE.root' as the default. In this case you can find a file on the
+IHEP farm (Beijing T2 farm defined output for step1). Just log onto any IHEP node and do:
+
+$>ls /pnfs/ihep.ac.cn/data/cms/store/user/jthomasw/Codex_Gridpack/
+
+For the filename replacement you only need to use the name after '/pnfs/ihep.ac.cn/data/cms'
+For example: /store/user/jthomasw/Codex_Gridpack/DM_Codex_LQ1000_DM_400_X_420/wmLHE/171122_115457/0000/wmLHE_1.root
+You can test the 'fragment' code locally using the cmsRun executable:
+
+$> cmsRun GEN-SIM_cfg.py
+
+The multicrab2 script will use the GEN-SIM pset and run on the grid via crab. This multicrab2 needs altering:
+
+1.) Change storage site (T2_CN_Beijing).
+2.) General.workArea (crab_projects-GEN-SIM-vX).
+3.) Samples for inputDataset needs to resemble the output dataset names from Step1.
+
+Using inputsDataset published on DBS. Dataset names in DBS are as follows:
+
+/<primary-dataset>/<CERN-username_or_groupname>-<publication-name>-<pset-hash>/USER
+
+e.g. /DM_Codex_LQ800_DM_300_X_330/jthomasw-wmLHE-<pset-hash>/USER
+
+lfn-prefix = crab config Data.outLFN
+primary-dataset = crab config Data.outputPrimaryDataset
+publication-name	 = crab config  Data.outputDatasetTag
+time-stamp	= A timestamp, based on when the task was submitted. A task submitted at 17:38:49 on 27 April 2014 would result in a timestamp of 140427_173849.
+counter = A four-digit counter, used to prevent more than 1000 files residing in the same directory.
+file-name	= crab config JobType.outputFiles.
+pset-hash = hash produced from the CMSSW code used by the cmsRun job.
+
+One can get the pset-hash (and the full output name one needs for the step2 multicrab config) by simply running the command:
+
+crab status -d <crab-job-dir>
+
+and it will appear in the 'Output dataset'. Can use 'crab_manager.py' script to loop over all job dirs from step 1 and get status'.
+
+Before submitting any jobs, you should figure out how to split your jobs up on crab. This can be done by using the genius '--dryrun' option with the
+crab 'submit' command. Instead of submitting your jobs to the grid, this will write the splitting results to a splitting summary .json file. It will then
+create an tarball containing the splitting summary .json and all files neccessary to run the job and upload this to the crab user file cache. The crab client
+will then download this file, unpack it in a temp directory and run a mini test job over a few events on the users local machine. When the job is finished,
+the crab client prints out a summary with the results of the splitting and the expected performance of the job e.g. memory consumption, job runtime etc.
+
+Multicrab script can be run using the following command:
+
+$> python multicrab_Step2_GenSim_cfg.py
+
+Output files can be found on the Beijing T2 farm @ e.g. /pnfs/ihep.ac.cn/data/cms/store/user/jthomasw/DM_Codex_LQ1000_DM_400_X_420/GEN-SIM/

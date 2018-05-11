@@ -1,0 +1,127 @@
+######################################
+#             NOTES
+#     Joshuha Thomas-Wilsker,
+#       IHEP Beijing, CERN
+######################################
+
+#####################################
+# Private Signal Sample Production  #
+#####################################
+
+The procedure described here is an
+attempt to assimilate all the steps
+to produce a private MC sample.
+
+The following steps are described:
+1.) GridPack creation.
+2.) LHE file creation.
+3.) GEN-SIM step.
+4.) MiniAOD files from LHE on PSI.
+#####################################
+
+Step 1 Needs the gridpacks hence the first step is to generate said gridpacks as described beneath.
+
+Starting with a clean environment (i.e. steps up until GEN-SIM step do not need to be in a CMSSW src directory) then do:
+
+$> git clone git@github.com:cms-sw/genproductions.git genproductions
+$> cd genproductions/bin/MadGraph5_aMCatNLO/
+
+You can copy scripts from here:
+'https://github.com/abdollah110/DarkMatter/tree/master/GridPack'
+'https://cms-project-generators.web.cern.ch/cms-project-generators/?C=M;O=A'
+
+This, amongst other things will copy the model to your directory
+(DarkMatter_Codex.zip). In particular this will also copy across a
+'Templates' directory which contains the templates:
+
+  'customizecards.dat': Sets model parameters e.g. masses, couplings . . .
+  'extramodels.dat': If non-SM Lagrangian is used it must be declared and uploaded to the generator web repository.
+  'proc_card.dat': Declare processes to be generated (syntax: https://cp3.irmp.ucl.ac.be/projects/madgraph/wiki/InputEx).
+  'run_card.dat': Declare options on how generator will run and generate the process + specific kinematic cuts.
+
+
+
+
+#####################
+# Single gridpack creation
+#####################
+First I describe how to generate a single gridpack. This process is then parallelised and run on the grid.
+
+The 'dirGenerator_gridpack.py' script which should perform the steps as described on the twiki: 'https://twiki.cern.ch/twiki/bin/view/CMS/QuickGuideMadGraph5aMCatNLO'
+
+$> python dirGenerator_gridpack.py
+
+This will make the directories for all mass points, copy the Madgraph
+cards in corresponding directories and create script
+(create_submit_gridpack_generation.sh) to create the gridpacks using lxbatch.
+
+The following command allows one can run a sample locally and ensure the
+gridpack production runs ok. The command is taken from
+create_submit_gridpack_generation.sh.:
+
+./gridpack_generation.sh Codex_LQ1100_DM_450_X_520_gen2 cards/production/13TeV/DarkMatter_Codex/Codex_LQ1100_DM_450_X_520_gen2
+
+If this command runs ok, one should try making some LHE files locally to ensure everything is ok.
+
+#####################
+# LHE file creation
+#####################
+$> tar -xavf <path of gridpack creation>/XXX.tar.xz
+$> ./runcmsgrid.sh <NEvents> <RandomSeed> <NumberOfCPUs>
+
+NEvents = number of events
+seed = seed number used for event generation.
+nCPU = number of CPUs used for the computation.
+
+Final LHE file should be in 'genproductions/bin/MadGraph5_aMCatNLO/' with filename: 'cmsgrid_final.lhe'
+
+#####################
+# Gridpack creation
+#####################
+If everything above ran ok one can create the remainder of the gridpacks, one can either run locally using the 'create_gridpack_generation.py' script.
+
+Two alternative options (not used here) are beneath:
+One could run the 'toSubmit_Codex_LQ_DM_X_gen3.sh' scripts to run the same commands but can be sent off remotely.
+You also have e.g. submit_cmsconnect_gridpack_generation.sh scripts that provide alternative run options.
+
+
+
+
+
+#####################
+#       Step 1
+#   wmLHE creation
+#####################
+Important: The same CMSSW version as was used to create LHE files must be used (as is the case with all other steps).
+
+
+This step needs the gridpacks generated above along with the multicrab_Step1_GridPackToLHE.py, the
+relevant wmLHE_XXXXX_cfg.py configs and the multicrab_step1 submission config.
+
+Now we need to set up a CMSSW environment.
+'http://cms-sw.github.io/latestIBs.html' - Latest integration build
+webpage. Info on which scram arch to use for the latest IB's.
+Can use 'scram list' to see which CMSSW version are available for a given scram arch.
+
+'export SCRAM_ARCH="slc6_amd64_gcc630"'
+
+I ended up using 'CMSSW_9_3_4' because that was what was used in the
+'Fall2017' production.
+
+$> source /cvmfs/cms.cern.ch/cmsset_default.sh
+$> export SCRAM_ARCH="slc6_amd64_gcc630"
+$> export CMSSW_VERSION="CMSSW_9_3_4"
+$> cmsrel $CMSSW_VERSION
+$> cd $CMSSW_VERSION/src
+$> scram b -j 3
+
+The jobs were submitted from '/afs/cern.ch/work/j/jthomasw/private/IHEP/EXO/CMSSW_9_3_4/src/step_1/' directory.
+
+- Copy gridpack tarballs (Code_****_tar.xz) here from genproduction directory. In this case, the gridpacks were generated in and copied from:
+  /afs/cern.ch/work/j/jthomasw/private/IHEP/EXO/genproductions/bin/MadGraph5_aMCatNLO/
+- Used generic_open_n_edit_template.py script to copy wmLHE template and create new file for each mass point (simply changing name and gridpack used in wmLHE script).
+  Note that the wmLHE template is specific to MonoLQ analyses. Can be generated using cmsDriver command at top of script.
+- Edit multicrab_step1 config options: outLFNDirBase, storageSite, Sample list, inputFiles, psetName and outputPrimaryDataset as they are analysis/filename specific.
+
+
+NOTE: I also wrote a generic script to rename .tar files 'generic_renameFiles.py' in case this is needed.

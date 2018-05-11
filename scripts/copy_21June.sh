@@ -1,0 +1,2 @@
+./se2local ttHTobb_M125_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/TTHbb_MC_ttHbb_4/170704_151957/0000/ /publicfs/cms/data/TopQuark/ttHbb/JTW/crab_Moriond17_output_2017_07_04_v1/mc/ttHTobb_M125_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/TTHbb_MC_ttHbb_4/170704_151957/0000/
+./se2local TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/TTHbb_MC_ttjets_4/170704_152201/0000/ /publicfs/cms/data/TopQuark/ttHbb/JTW/crab_Moriond17_output_2017_07_04_v1/mc/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/TTHbb_MC_ttjets_4/170704_152201/0000/

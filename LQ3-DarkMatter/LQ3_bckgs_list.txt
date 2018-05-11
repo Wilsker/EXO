@@ -1,0 +1,18 @@
+##############################################
+#	Bckgs list 4 Mono-LQ3 analysis
+##############################################
+
+# Process: tt+jets
+# https://twiki.cern.ch/twiki/bin/view/CMS/TopMonteCarlo
+
+
+# Process: Single top (s-chan, t-chan, Wt-chan)
+
+# Process: DYJets(ll)
+
+# Process: Diboson (WZ,WW,ZZ)
+
+# Process: Wjets(lv)
+
+# Process: QCD multijet
+
